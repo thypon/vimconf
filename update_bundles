@@ -1,0 +1,118 @@
+#!/usr/bin/env ruby
+
+GIT_BUNDLES = [
+  #"git://github.com/vim-scripts/tlib.git",
+  #"git://github.com/mfollet/groovy.vim",
+  "git://github.com/vim-scripts/gnuplot.vim.git",
+  "git://github.com/rainux/vim-vala.git",
+  "git://github.com/wincent/Command-T.git",
+  "git://github.com/majutsushi/tagbar.git",
+  "git://github.com/juvenn/mustache.vim.git",
+  "git://github.com/Rip-Rip/clang_complete.git", #C/C++ clang/LLVM autocompleter
+  "git://github.com/vim-scripts/tlib.git", #needed by tselectbuffer
+  "git://github.com/tomtom/tselectbuffer_vim.git", #Buffer selectoutor for vim
+  #"git://github.com/rstacruz/sparkup.git", #Sparkup vim support
+  "git://github.com/mattn/zencoding-vim.git", #ZENCODING Vim supporta(superseded)
+  "git://github.com/vim-scripts/Txtfmt-The-Vim-Highlighter.git", #txt formatter highlighter
+  "git://github.com/rson/vim-conque.git", #buggish
+  "git://github.com/jiangmiao/simple-javascript-indenter.git", #better javascript indentation
+  "git://github.com/vim-scripts/a.vim.git", #same as FSwitch
+  #"git://github.com/vim-scripts/c.vim.git",   #syntax facilities support
+  "git://github.com/jnwhiteh/vim-golang.git",  #syntax, godoc and go general support
+  "git://github.com/vim-scripts/XML-Completion.git", #XML autocompletion
+  "git://github.com/vim-scripts/dbext.vim.git", #autocompletion for existents dbs/tables
+  "git://github.com/cschlueter/vim-wombat.git", #wombat theme
+  "git://github.com/tpope/vim-rails.git",    #rails vim wrapper 
+  "git://github.com/scrooloose/nerdtree.git", #file outliner for vim
+  "git://github.com/tpope/vim-abolish.git",  #fabulous substitution framework
+  "git://github.com/tpope/vim-bundler.git",  #bundler wrapper
+  # "git://github.com/astashov/vim-ruby-debugger.git", buggish
+  "git://github.com/msanders/snipmate.vim.git", #snippets for vim
+  "git://github.com/timcharper/textile.vim.git", #textile sytax 
+  "git://github.com/tpope/vim-fugitive.git",  #git command wrapper
+  "git://github.com/tpope/vim-git.git",       #git syntax 
+  "git://github.com/ciaranm/inkpot.git",       #inkpot theme
+  "git://github.com/tpope/vim-markdown.git",    #markdown syntax
+  #"git://github.com/skammer/vim-css-color.git", #color highlight in CSS files
+  "git://github.com/tpope/vim-vividchalk.git",  #vividchalk theme
+  "git://github.com/tsaleh/vim-supertab.git", #super intelligent tab
+  "git://github.com/vim-scripts/Railscasts-Theme-GUIand256color.git", #theme railscasts
+  "git://github.com/vim-ruby/vim-ruby.git",    #ruby amenities
+  "git://github.com/kchmck/vim-coffee-script", #coffescript syntax HL
+  "git://github.com/vim-scripts/javacomplete", #java completion
+  #"git://github.com/vim-scripts/Vim-JDE.git", #buggish
+  "git://github.com/rgrove/vim-yui3.git", #yui3 syntax
+  "git://github.com/vim-scripts/FSwitch", #alternate file view
+  "git://github.com/vim-scripts/SearchComplete", #Autocompletion in the search bar
+  "git://github.com/scrooloose/nerdcommenter.git", #Helps commenting text
+  "git://github.com/thypon/snipmate-snippets.git", #My branch of snipmante SNIPPETS
+  "git://github.com/thypon/mxml.vim.git",      #Syntax HL for MXML
+  "git://github.com/spiiph/vim-space.git",     #Intelligent space command
+  "git://github.com/scrooloose/syntastic.git", #Auto check syntax errors and HL it
+  "git://github.com/Raimondi/delimitMate.git", #Auto pair brackets and similar elements
+  "git://github.com/jeroenbourgois/vim-actionscript.git", #Actionscript HL
+  "git://github.com/vim-scripts/SQLComplete.vim.git", #SQL completion
+  "git://vim-latex.git.sourceforge.net/gitroot/vim-latex/vim-latex", #LATEX All-in-One plugin
+  "git://github.com/vim-scripts/mathml.vim.git", #Syntax HL for MathML
+  "git://github.com/vim-scripts/svg.vim.git", #Syntax HL for SVG
+  "git://github.com/xolox/vim-notes.git",
+  "git://github.com/sickill/vim-pasta.git",
+  "git://github.com/hotoo/template.vim.git",
+  "git://github.com/tpope/vim-rake.git"
+]
+
+require 'fileutils'
+require 'open-uri'
+CURR_DIR = Dir.pwd
+BUNDLE_DIR = File.join(CURR_DIR,"bundle")
+
+def build_commandt
+  Dir.chdir BUNDLE_DIR do
+    Dir.chdir "Command-T" do
+      `rake make`
+    end
+  end  
+end
+
+def create_snippets
+  Dir.chdir BUNDLE_DIR do
+    Dir.chdir "snipmate-snippets" do
+      `rake deploy_local`
+    end   
+  end
+end
+
+def install_rsense
+  rsense_dir = File.join(CURR_DIR, "rsense")
+  rsense_repo = "git://github.com/m2ym/rsense.git"
+  puts "Trashing everything (lookout!)"
+  FileUtils.rm_rf rsense_dir
+  `git clone #{rsense_repo} #{rsense_dir}`
+  
+  Dir.chdir rsense_dir do
+    FileUtils.chmod "+x", "bin/rsense"
+    `ruby etc/config.rb > $HOME/.rsense`
+    FileUtils.mkdir_p "../bundle/rsense/plugin"
+    FileUtils.mv "etc/rsense.vim", "../bundle/rsense/plugin"
+  end
+end
+
+def install_bundles
+  Dir.chdir BUNDLE_DIR do
+    puts "Trashing everything (lookout!)"
+    Dir["*"].each {|d| FileUtils.rm_rf d }
+
+    GIT_BUNDLES.each do |url|
+      dir = url.split('/').last.sub(/\.git$/, '')
+      puts "  Unpacking #{url} into #{dir}"
+      `git clone #{url} #{dir}`
+      FileUtils.rm_rf(File.join(dir, ".git"))
+      sleep 3
+    end
+  end
+end
+
+install_bundles
+install_rsense
+create_snippets
+build_commandt
