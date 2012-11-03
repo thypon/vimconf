@@ -65,6 +65,7 @@ require 'fileutils'
 require 'open-uri'
 CURR_DIR = Dir.pwd
 BUNDLE_DIR = File.join(CURR_DIR,"bundle")
+SNIPPETS_DIR = File.join(CURR_DIR, "snippets")
 
 def build_commandt
   Dir.chdir BUNDLE_DIR do
@@ -75,6 +76,8 @@ def build_commandt
 end
 
 def create_snippets
+  FileUtils.mkdir SNIPPETS_DIR unless Dir.exists? SNIPPETS_DIR
+
   Dir.chdir BUNDLE_DIR do
     Dir.chdir "snipmate-snippets" do
       `rake deploy_local`
@@ -98,6 +101,7 @@ def install_rsense
 end
 
 def install_bundles
+  FileUtils.mkdir BUNDLE_DIR unless Dir.exists? BUNDLE_DIR
   Dir.chdir BUNDLE_DIR do
     puts "Trashing everything (lookout!)"
     Dir["*"].each {|d| FileUtils.rm_rf d }
