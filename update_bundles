@@ -3,6 +3,7 @@
 GIT_BUNDLES = [
   #"git://github.com/vim-scripts/tlib.git",
   #"git://github.com/mfollet/groovy.vim",
+  "git://github.com/derekwyatt/vim-scala.git",
   "git://github.com/vim-scripts/gnuplot.vim.git",
   "git://github.com/rainux/vim-vala.git",
   "git://github.com/wincent/Command-T.git",
